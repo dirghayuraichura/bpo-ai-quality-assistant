@@ -83,8 +83,8 @@ backend/
    # Using MongoDB locally
    mongod
    
-   # Or using Docker
-   docker run -d -p 27017:27017 --name mongodb mongo:latest
+   # Or using MongoDB Atlas (cloud service)
+   # Update MONGODB_URI in .env with your Atlas connection string
    ```
 
 5. **Run the application**
@@ -269,40 +269,7 @@ The API provides comprehensive error handling with:
 - **Input Validation**: Joi schema validation
 - **Error Sanitization**: Safe error responses
 
-## Development
 
-### Running Tests
-```bash
-npm test
-```
-
-### Code Formatting
-```bash
-npm run format
-```
-
-### Linting
-```bash
-npm run lint
-```
-
-## Mock Services
-
-The current implementation uses mock services for:
-
-### STT Service (`services/sttService.js`)
-- OpenAI Whisper API integration (currently mock)
-- Returns realistic transcription results
-- Configurable processing delays
-- Ready for production OpenAI API calls
-
-### LLM Service (`services/llmService.js`)
-- OpenAI GPT API integration (currently mock)
-- Generates conversation analysis and coaching recommendations
-- Realistic sentiment and metrics
-- Ready for production OpenAI API calls
-
-## Production Deployment
 
 ### Environment Setup
 1. Set `NODE_ENV=production`
@@ -311,16 +278,27 @@ The current implementation uses mock services for:
 4. Set up proper CORS origins
 5. Configure file upload limits
 
-### Docker Deployment
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-EXPOSE 3001
-CMD ["npm", "start"]
-```
+### Production Deployment
+
+#### Option 1: Traditional Server Deployment
+1. Set up a Node.js server (Ubuntu/CentOS/Windows Server)
+2. Install MongoDB or use MongoDB Atlas
+3. Clone the repository and install dependencies
+4. Configure environment variables
+5. Use PM2 or similar process manager:
+   ```bash
+   npm install -g pm2
+   pm2 start index.js --name "contact-center-ai"
+   pm2 startup
+   pm2 save
+   ```
+
+#### Option 2: Cloud Platform Deployment
+- **Heroku**: Deploy directly from Git repository
+- **Railway**: Simple Node.js deployment
+- **Render**: Free tier available for development
+- **Vercel**: Serverless deployment option
+- **AWS EC2**: Full control over server environment
 
 ### Integration with Real Services
 
@@ -335,11 +313,3 @@ To integrate with real AI services, update:
    - Add actual OpenAI API calls for analysis and coaching generation
    - Implement proper prompt engineering for conversation analysis
    - Add error handling and fallback mechanisms
-
-## License
-
-This project is licensed under the ISC License.
-
-## Support
-
-For support and questions, please check the API documentation at `/api/status` or review the error logs. 

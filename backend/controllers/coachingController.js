@@ -89,6 +89,8 @@ class CoachingController {
         success: true,
         message: 'Coaching plan generated successfully',
         data: {
+          id: coachingPlan._id,
+          _id: coachingPlan._id,
           coachingPlanId: coachingPlan._id,
           analysisId: coachingPlan.analysisId,
           audioFileId: coachingPlan.audioFileId,
@@ -304,9 +306,18 @@ class CoachingController {
           .limit(limit)
           .populate('analysisId', 'sentiment customerSatisfaction issueResolution compliance summary')
           .populate('audioFileId', 'originalName filename size mimetype uploadedAt')
-          .select('-__v'),
+          .select('-__v')
+          .lean(),
         CoachingPlan.countDocuments(filter)
       ]);
+
+      // Transform to include both _id and id
+      const transformedPlans = coachingPlans.map(plan => ({
+        ...plan,
+        id: plan._id,
+        analysis: plan.analysisId,
+        audioFile: plan.audioFileId
+      }));
 
       // Calculate pagination info
       const totalPages = Math.ceil(total / limit);
@@ -315,7 +326,7 @@ class CoachingController {
 
       res.json({
         success: true,
-        data: coachingPlans,
+        data: transformedPlans,
         pagination: {
           current: page,
           total: totalPages,

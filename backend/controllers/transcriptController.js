@@ -92,6 +92,8 @@ class TranscriptController {
           success: true,
           message: 'Audio file transcribed successfully',
           data: {
+            id: transcript._id,
+            _id: transcript._id,
             transcriptId: transcript._id,
             audioFileId: transcript.audioFileId,
             text: transcript.text,
@@ -137,7 +139,8 @@ class TranscriptController {
 
       const transcript = await Transcript.findById(id)
         .populate('audioFileId', 'originalName filename size mimetype uploadedAt')
-        .select('-__v');
+        .select('-__v')
+        .lean();
 
       if (!transcript) {
         return res.status(404).json({
@@ -146,9 +149,16 @@ class TranscriptController {
         });
       }
 
+      // Transform to include both _id and id
+      const transformedTranscript = {
+        ...transcript,
+        id: transcript._id,
+        audioFile: transcript.audioFileId
+      };
+
       res.json({
         success: true,
-        data: transcript
+        data: transformedTranscript
       });
 
     } catch (error) {
@@ -179,7 +189,8 @@ class TranscriptController {
 
       const transcript = await Transcript.findOne({ audioFileId })
         .populate('audioFileId', 'originalName filename size mimetype uploadedAt')
-        .select('-__v');
+        .select('-__v')
+        .lean();
 
       if (!transcript) {
         return res.status(404).json({
@@ -188,9 +199,16 @@ class TranscriptController {
         });
       }
 
+      // Transform to include both _id and id
+      const transformedTranscript = {
+        ...transcript,
+        id: transcript._id,
+        audioFile: transcript.audioFileId
+      };
+
       res.json({
         success: true,
-        data: transcript
+        data: transformedTranscript
       });
 
     } catch (error) {
@@ -240,9 +258,17 @@ class TranscriptController {
           .skip(skip)
           .limit(limit)
           .populate('audioFileId', 'originalName filename size mimetype uploadedAt')
-          .select('-__v'),
+          .select('-__v')
+          .lean(),
         Transcript.countDocuments(filter)
       ]);
+
+      // Transform to include both _id and id
+      const transformedTranscripts = transcripts.map(transcript => ({
+        ...transcript,
+        id: transcript._id,
+        audioFile: transcript.audioFileId
+      }));
 
       // Calculate pagination info
       const totalPages = Math.ceil(total / limit);
@@ -251,7 +277,7 @@ class TranscriptController {
 
       res.json({
         success: true,
-        data: transcripts,
+        data: transformedTranscripts,
         pagination: {
           current: page,
           total: totalPages,

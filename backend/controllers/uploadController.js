@@ -36,6 +36,7 @@ class UploadController {
         message: 'Audio file uploaded successfully',
         data: {
           id: audioFile._id,
+          _id: audioFile._id,
           originalName: audioFile.originalName,
           filename: audioFile.filename,
           size: audioFile.size,
@@ -97,14 +98,16 @@ class UploadController {
         success: true,
         data: {
           id: audioFile._id,
+          _id: audioFile._id,
           originalName: audioFile.originalName,
           filename: audioFile.filename,
+          path: audioFile.path,
           size: audioFile.size,
           mimetype: audioFile.mimetype,
           duration: audioFile.duration,
           uploadedAt: audioFile.uploadedAt,
           status: audioFile.status,
-          fileSystem: fileInfo
+          ...fileInfo
         }
       });
 
@@ -154,9 +157,17 @@ class UploadController {
           .sort(sort)
           .skip(skip)
           .limit(limit)
-          .select('-__v'),
+          .select('-__v')
+          .lean(),
         AudioFile.countDocuments(filter)
       ]);
+
+      // Transform to include both _id and id
+      const transformedFiles = audioFiles.map(file => ({
+        ...file,
+        id: file._id,
+        uploadedAt: file.uploadedAt
+      }));
 
       // Calculate pagination info
       const totalPages = Math.ceil(total / limit);
@@ -165,7 +176,7 @@ class UploadController {
 
       res.json({
         success: true,
-        data: audioFiles,
+        data: transformedFiles,
         pagination: {
           current: page,
           total: totalPages,

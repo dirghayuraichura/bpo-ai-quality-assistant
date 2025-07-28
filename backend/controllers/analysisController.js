@@ -71,6 +71,8 @@ class AnalysisController {
         success: true,
         message: 'Transcript analyzed successfully',
         data: {
+          id: analysis._id,
+          _id: analysis._id,
           analysisId: analysis._id,
           transcriptId: analysis.transcriptId,
           audioFileId: analysis.audioFileId,
@@ -224,9 +226,18 @@ class AnalysisController {
           .limit(limit)
           .populate('transcriptId', 'text confidence language createdAt')
           .populate('audioFileId', 'originalName filename size mimetype uploadedAt')
-          .select('-__v'),
+          .select('-__v')
+          .lean(),
         Analysis.countDocuments(filter)
       ]);
+
+      // Transform to include both _id and id
+      const transformedAnalyses = analyses.map(analysis => ({
+        ...analysis,
+        id: analysis._id,
+        transcript: analysis.transcriptId,
+        audioFile: analysis.audioFileId
+      }));
 
       // Calculate pagination info
       const totalPages = Math.ceil(total / limit);
@@ -235,7 +246,7 @@ class AnalysisController {
 
       res.json({
         success: true,
-        data: analyses,
+        data: transformedAnalyses,
         pagination: {
           current: page,
           total: totalPages,
